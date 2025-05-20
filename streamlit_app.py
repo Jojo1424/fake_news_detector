@@ -4,10 +4,10 @@ import pickle
 st.title("📰 Fake News Detector")
 
 # LOAD the pre-trained vectorizer and model
-with open("vectorizer.pkl", "rb") as f:
-    vectorizer = pickle.load(f)
-with open("rf_model.pkl", "rb") as f:
-    model = pickle.load(f)
+with open("vectorizer.pkl", "wb") as f:
+    pickle.dump(vectorizer, f)
+with open("rf_model.pkl", "wb") as f:
+    pickle.dump(rf_model, f)
 
 user_input = st.text_area("Paste a news article (title + content):")
 if st.button("Predict"):
