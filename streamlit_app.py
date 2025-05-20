@@ -3,11 +3,11 @@ import pickle
 
 st.title("📰 Fake News Detector")
 
-# LOAD the pre-trained vectorizer and model
-with open("vectorizer.pkl", "wb") as f:
-    pickle.dump(vectorizer, f)
-with open("rf_model.pkl", "wb") as f:
-    pickle.dump(rf_model, f)
+# Only LOAD the pre-trained vectorizer and model, do not SAVE them!
+with open("vectorizer.pkl", "rb") as f:
+    vectorizer = pickle.load(f)
+with open("rf_model.pkl", "rb") as f:
+    model = pickle.load(f)
 
 user_input = st.text_area("Paste a news article (title + content):")
 if st.button("Predict"):
@@ -19,9 +19,8 @@ if st.button("Predict"):
     else:
         st.warning("Please enter some text.")
 
-# If you want to display your code (not run it), use st.code():
 st.header("📝 Model Training Code Example")
 training_code = '''
-# (paste your training code here, as a string!)
+# (Paste your model training code here for display only!)
 '''
 st.code(training_code, language='python')
