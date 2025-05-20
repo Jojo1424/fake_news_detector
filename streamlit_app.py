@@ -1,26 +1,47 @@
 import streamlit as st
 import pickle
+import re
+import numpy as np
 
-st.title("📰 Fake News Detector")
+@st.cache_resource
+def load_vectorizer_model():
+    with open("vectorizer.pkl", "rb") as f:
+        vectorizer = pickle.load(f)
+    with open("rf_model.pkl", "rb") as f:
+        model = pickle.load(f)
+    return vectorizer, model
 
-# Only LOAD the pre-trained vectorizer and model, do not SAVE them!
-with open("vectorizer.pkl", "rb") as f:
-    vectorizer = pickle.load(f)
-with open("rf_model.pkl", "rb") as f:
-    model = pickle.load(f)
+vectorizer, model = load_vectorizer_model()
 
-user_input = st.text_area("Paste a news article (title + content):")
-if st.button("Predict"):
-    if user_input.strip():
-        input_clean = user_input.lower()
-        input_vec = vectorizer.transform([input_clean])
-        pred = model.predict(input_vec)[0]
-        st.write("### Prediction:", "🟥 **FAKE NEWS**" if pred == 0 else "🟩 **TRUE NEWS**")
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+st.set_page_config(page_title="Fake News Detection", layout="centered")
+st.title("📰 Fake News Detection App")
+st.write("Enter a news article below to check if it's likely **Fake** or **Real**.")
+
+input_text = st.text_area("News Article Text", height=200)
+
+if st.button("Detect"):
+    if input_text.strip() == "":
+        st.warning("Please enter some news text.")
     else:
-        st.warning("Please enter some text.")
+        cleaned = clean_text(input_text)
+        X = vectorizer.transform([cleaned])
+        prediction = model.predict(X)[0]
+        proba = model.predict_proba(X)[0]
+        label = "Real" if prediction == 1 else "Fake"
+        color = "green" if label == "Real" else "red"
+        st.markdown(f"### Prediction: <span style='color:{color}'>{label}</span>", unsafe_allow_html=True)
+        st.write(f"**Confidence:** {np.max(proba):.2%}")
+        st.write("**Class probabilities:**")
+        st.write({
+            "Fake": f"{proba[0]:.2%}",
+            "Real": f"{proba[1]:.2%}"
+        })
 
-st.header("📝 Model Training Code Example")
-training_code = '''
-# (Paste your model training code here for display only!)
-'''
-st.code(training_code, language='python')
+st.markdown("---")
+st.caption("Developed for Fake News Detection Dissertation. Powered by Streamlit & Scikit-learn.")
